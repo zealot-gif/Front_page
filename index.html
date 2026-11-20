@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+  <title>Zealot Lab | 互動模擬與學習工具集</title>
+  <meta name="description" content="化學模擬、互動教育遊戲與學士後中醫備考工具集。" />
+  <style>
+    :root {
+      --bg-base: #090b16;
+      --bg-surface: #111528;
+      --bg-card: #161b33;
+      --bg-card-hover: #1d2442;
+      --indigo-primary: #6366f1;
+      --indigo-light: #818cf8;
+      --indigo-glow: rgba(99, 102, 241, 0.25);
+      --border-subtle: rgba(129, 140, 248, 0.16);
+      --border-active: rgba(129, 140, 248, 0.5);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-pill: 9999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      background-color: var(--bg-base);
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(79, 70, 229, 0.14) 0%, transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.08) 0%, transparent 45%);
+      color: var(--text-main);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      padding: 1.5rem 0 2rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.9rem;
+      border-radius: var(--radius-pill);
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid var(--border-subtle);
+      color: var(--indigo-light);
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-size: clamp(1.75rem, 5vw, 2.5rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.6rem;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    /* Search & Filter Bar */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .search-box {
+      position: relative;
+      width: 100%;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.8rem 1rem 0.8rem 2.6rem;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-box input::placeholder {
+      color: var(--text-dim);
+    }
+
+    .search-box input:focus {
+      border-color: var(--indigo-primary);
+      box-shadow: 0 0 0 3px var(--indigo-glow);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    /* Mobile-friendly horizontal scroll tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.25rem;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .filter-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-btn {
+      flex: 0 0 auto;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-height: 38px;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--border-active);
+      color: var(--text-main);
+    }
+
+    .tab-btn.active {
+      background: var(--indigo-primary);
+      border-color: var(--indigo-primary);
+      color: #ffffff;
+      font-weight: 600;
+      box-shadow: 0 4px 14px var(--indigo-glow);
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.15rem;
+    }
+
+    @media (max-width: 480px) {
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      .container {
+        padding: 1.5rem 1rem 3rem;
+      }
+    }
+
+    /* Card */
+    .card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.35rem;
+      transition: transform 0.22s ease, background-color 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      background: var(--bg-card-hover);
+      border-color: var(--border-active);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    .card-top {
+      margin-bottom: 1.25rem;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .category-tag {
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
+      border-radius: var(--radius-pill);
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+    }
+
+    .featured-dot {
+      font-size: 0.75rem;
+      color: #fbbf24;
+      font-weight: 600;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.45rem;
+      word-break: break-word;
+    }
+
+    .card-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* Thumb-friendly Action Button */
+    .card-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      width: 100%;
+      min-height: 44px;
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-md);
+      background: rgba(99, 102, 241, 0.14);
+      border: 1px solid rgba(129, 140, 248, 0.3);
+      color: #c7d2fe;
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .card-link:hover,
+    .card-link:active {
+      background: var(--indigo-primary);
+      border-color: var(--indigo-primary);
+      color: #ffffff;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-dim);
+      background: var(--bg-surface);
+      border-radius: var(--radius-lg);
+      border: 1px dashed var(--border-subtle);
+    }
+
+    footer {
+      margin-top: 3.5rem;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: var(--indigo-light);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">✨ ZEALOT-GIF PORTFOLIO</div>
+      <h1>互動模擬與學習工具集</h1>
+      <p class="subtitle">結合化學視覺化、知識探索遊戲與備考分析的網頁專案入口</p>
+    </header>
+
+    <section class="controls" aria-label="篩選與搜尋">
+      <div class="search-box">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="search" id="searchInput" placeholder="搜尋專案名稱或關鍵字（例如：分子、英文、密室）..." />
+      </div>
+      <div class="filter-tabs" id="filterTabs" role="tablist"></div>
+    </section>
+
+    <main class="grid" id="projectGrid"></main>
+
+    <footer>
+      <p>Hosted on GitHub Pages · <a href="https://github.com/zealot-gif" target="_blank" rel="noopener noreferrer">@zealot-gif</a></p>
+    </footer>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 【未來要新增、修改或刪除網站，只需要編輯下面這個 PROJECTS 陣列即可！】
+    // 欄位說明：
+    //   title    : 卡片主標題
+    //   category : 分類名稱（系統會自動根據這裡的名稱產生上方篩選按鈕）
+    //   desc     : 簡短功能說明
+    //   url      : 網站網址
+    //   featured : true 會顯示「★ 精選」標記，false 則不顯示
+    // =========================================================================
+    const PROJECTS = [
+      {
+        title: "Mol6 — 2D/3D 分子結構繪製工具",
+        category: "化學模擬",
+        desc: "支援有機化學價數檢查、孤對電子 VSEPR 幾何構型與立體分子視覺化。",
+        url: "https://zealot-gif.github.io/Mol6/",
+        featured: true
+      },
+      {
+        title: "Organic Reaction Mechanism Sketchpad",
+        category: "化學模擬",
+        desc: "有機化學反應機構電子流彎箭頭繪製與中間體推演畫板。",
+        url: "https://zealot-gif.github.io/Organic-Reaction-Mechanism-Sketchpad/",
+        featured: true
+      },
+      {
+        title: "Post-Bac Vocabulary 歷屆高頻單字分析器",
+        category: "英文與考題",
+        desc: "彙整 82 份學士後中醫與私醫聯招歷屆試題，提供字頻統計與原句語境檢索。",
+        url: "https://zealot-gif.github.io/Post-Bac-vocabulary2/",
+        featured: true
+      },
+      {
+        title: "Exam List 歷屆試題與備考清單",
+        category: "英文與考題",
+        desc: "系統化整理各校後中醫考試科目進度與考古題練習檢核表。",
+        url: "https://zealot-gif.github.io/exam_list/",
+        featured: false
+      },
+      {
+        title: "AlChinist2 — 熱力學與文字煉金術",
+        category: "互動遊戲",
+        desc: "結合元素合成、古根海姆熱力學方塊與偏微分算符的知識探索遊戲。",
+        url: "https://zealot-gif.github.io/AlChinist2/",
+        featured: false
+      },
+      {
+        title: "逃出清華旺宏館 (NTHU Library Escape)",
+        category: "互動遊戲",
+        desc: "以清華大學旺宏館為背景的點擊式解謎密室逃脫網頁遊戲。",
+        url: "https://zealot-gif.github.io/nthu-library-escape3/",
+        featured: false
+      },
+      {
+        title: "Eng-Tower — 英文單字射擊爬塔",
+        category: "互動遊戲",
+        desc: "透過街機射擊機制強化字根字首、片語與高頻單字反應速度。",
+        url: "https://zealot-gif.github.io/eng-tower/",
+        featured: false
+      },
+      {
+        title: "Post-Bac BioChem Dungeon Master",
+        category: "互動遊戲",
+        desc: "結合修仙升級與生物、生化知識測驗的 RPG 地下城闖關遊戲。",
+        url: "https://zealot-gif.github.io/Post-Bac-BioChem-Dungeon-Master/",
+        featured: false
+      }
+    ];
+    // =========================================================================
+
+    const gridEl = document.getElementById("projectGrid");
+    const tabsEl = document.getElementById("filterTabs");
+    const searchEl = document.getElementById("searchInput");
+
+    let currentCategory = "全部";
+    let searchQuery = "";
+
+    // 自動從 PROJECTS 萃取所有不重複分類
+    function renderTabs() {
+      const categories = ["全部", ...new Set(PROJECTS.map(p => p.category))];
+      tabsEl.innerHTML = "";
+
+      categories.forEach(cat => {
+        const btn = document.createElement("button");
+        btn.className = "tab-btn" + (cat === currentCategory ? " active" : "");
+        btn.textContent = cat;
+        btn.type = "button";
+        btn.addEventListener("click", () => {
+          currentCategory = cat;
+          renderTabs();
+          renderCards();
+        });
+        tabsEl.appendChild(btn);
+      });
+    }
+
+    // 渲染專案卡片（使用 textContent 確保安全，不會誤解析 HTML 標籤）
+    function renderCards() {
+      const q = searchQuery.trim().toLowerCase();
+      const filtered = PROJECTS.filter(item => {
+        const matchCat = currentCategory === "全部" || item.category === currentCategory;
+        const matchText =
+          !q ||
+          item.title.toLowerCase().includes(q) ||
+          item.desc.toLowerCase().includes(q) ||
+          item.category.toLowerCase().includes(q);
+        return matchCat && matchText;
+      });
+
+      gridEl.innerHTML = "";
+
+      if (filtered.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent = "找不到符合條件的專案，試試其他關鍵字或切換分類。";
+        gridEl.appendChild(empty);
+        return;
+      }
+
+      filtered.forEach(item => {
+        const card = document.createElement("article");
+        card.className = "card";
+
+        const top = document.createElement("div");
+        top.className = "card-top";
+
+        const meta = document.createElement("div");
+        meta.className = "card-meta";
+
+        const tag = document.createElement("span");
+        tag.className = "category-tag";
+        tag.textContent = item.category;
+        meta.appendChild(tag);
+
+        if (item.featured) {
+          const star = document.createElement("span");
+          star.className = "featured-dot";
+          star.textContent = "★ 精選";
+          meta.appendChild(star);
+        }
+
+        const title = document.createElement("h2");
+        title.className = "card-title";
+        title.textContent = item.title;
+
+        const desc = document.createElement("p");
+        desc.className = "card-desc";
+        desc.textContent = item.desc;
+
+        top.appendChild(meta);
+        top.appendChild(title);
+        top.appendChild(desc);
+
+        const link = document.createElement("a");
+        link.className = "card-link";
+        link.href = item.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "開啟工具 ↗";
+
+        card.appendChild(top);
+        card.appendChild(link);
+        gridEl.appendChild(card);
+      });
+    }
+
+    searchEl.addEventListener("input", (e) => {
+      searchQuery = e.target.value;
+      renderCards();
+    });
+
+    renderTabs();
+    renderCards();
+  </script>
+</body>
+</html>
